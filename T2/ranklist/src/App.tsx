@@ -17,6 +17,10 @@ interface DataType {
   id: number,
   score: ScoreType[]
 }
+interface ProblemType {
+    title: string
+    id: number
+}
 
 class DataTable {
   name: string = ''
@@ -43,7 +47,10 @@ interface DataStatistics {
   type: string
 }
 
-const Columns: ColumnsType<DataTable> = [
+const ProblemsIndex: ProblemType[] = [
+    {title: 'T1', id: 0}, {title: 'T2', id: 1}, {title: 'T3', id: 2}, {title: 'T4', id: 3} 
+]
+const ColumnsDefault: ColumnsType<DataTable> = [
   {
     title: '排名',
     dataIndex: 'rank',
@@ -67,74 +74,6 @@ const Columns: ColumnsType<DataTable> = [
     dataIndex: 'total_score',
     key: 'total_score',
     fixed: 'left'
-  },
-  {
-    title: 'T1',
-    dataIndex: ['score', '0'],
-    key: 'score0',
-    render: (data: any) => {
-      return (
-        <div style={{
-            color: (Number(data[0]) === 10 ? (Number(data[1]) === 0 ? '#BDDB69' : '#86AD53') : '#E84026'), 
-            fontWeight: 'bold',
-            backgroundColor: (Number(data[1]) === 0 ? '#5BA854' : '#ffffff00'),
-            margin: '0'
-          }}>
-          {data[0]}
-        </div>
-      )
-    }
-  },
-  {
-    title: 'T2',
-    dataIndex: ['score', '1'],
-    key: 'score1',
-    render: (data: any) => {
-      return (
-        <div style={{
-            color: (Number(data[0]) === 10 ? (Number(data[1]) === 0 ? '#BDDB69' : '#86AD53') : '#E84026'), 
-            fontWeight: 'bold',
-            backgroundColor: (Number(data[1]) === 0 ? '#5BA854' : '#ffffff00'),
-            margin: '0'
-          }}>
-          {data[0]}
-        </div>
-      )
-    }
-  },
-  {
-    title: 'T3',
-    dataIndex: ['score', '2'],
-    key: 'score2',
-    render: (data: any) => {
-      return (
-        <div style={{
-            color: (Number(data[0]) === 10 ? (Number(data[1]) === 0 ? '#BDDB69' : '#86AD53') : '#E84026'), 
-            fontWeight: 'bold',
-            backgroundColor: (Number(data[1]) === 0 ? '#5BA854' : '#ffffff00'),
-            margin: '0'
-          }}>
-          {data[0]}
-        </div>
-      )
-    }
-  },
-  {
-    title: 'T4',
-    dataIndex: ['score', '3'],
-    key: 'score3',
-    render: (data: any) => {
-      return (
-        <div style={{
-            color: (Number(data[0]) === 10 ? (Number(data[1]) === 0 ? '#BDDB69' : '#86AD53') : '#E84026'), 
-            fontWeight: 'bold',
-            backgroundColor: (Number(data[1]) === 0 ? '#5BA854' : '#ffffff00'),
-            margin: '0'
-          }}>
-          {data[0]}
-        </div>
-      )
-    }
   }
 ]
 
@@ -582,6 +521,114 @@ let fetchedData: DataType[] = [
   }
 ]
 
+
+function StatColumn(statsData: DataStatistics[]) {
+    const columnPlot = {
+        data: statsData,
+        xField: 'tid',
+        yField: 'value',
+        seriesField: 'type',
+        isStack: true
+    }
+    return <Column {...columnPlot} style={{width: '100%'}}/>
+}
+
+
+export default function App() {
+    let adaptedData: DataTable[] = []
+    let statsData: DataStatistics[] = []
+    let Columns:ColumnsType<DataTable> = []
+    
+    const [isModalOpen, setIsModalOpen] = useState(false)
+
+    adaptedData = adaptToDataT()
+    statsData = generateStatistics(adaptedData)
+    // console.log(statsData)
+    Columns = getProblemIndexes(ProblemsIndex)
+    
+    return (
+        <div className="App">
+        <Layout>
+            <Header style={{
+                backgroundColor: '#E5E5E5', 
+                position: 'sticky', 
+                top: 0, 
+                zIndex: 1,
+                width: '100%', 
+                boxShadow: '0px 2px 10px 2px rgb(0,0,0,0.15)'
+                }} >
+                <Row style={{justifyContent: 'space-between', zIndex: 2}}>
+                    <Col style={{fontSize: 25, color:'#000000', zIndex: 2, width: '30%'}}>Rank List</Col>
+                    
+                    <Col>
+                        <Button onClick={() => {setIsModalOpen(!isModalOpen)}} shape='circle'>
+                            <BarChartOutlined />
+                        </Button>
+                    </Col>
+                </Row>
+            </Header>
+            <Content style={{width: '80%', margin: 'auto', zIndex: 0}}>
+            <Col style={{width:'100%'}}>
+                <Modal 
+                    title="统计分析" 
+                    open={isModalOpen} 
+                    onOk={() => {setIsModalOpen(false)}}
+                    onCancel={() => {setIsModalOpen(false)}}
+                    footer={[
+                        <Button onClick={() => {setIsModalOpen(false)}} type='primary' key='confirm'>确定</Button>
+                    ]}
+                >
+                    {StatColumn(statsData)}
+                </Modal>
+                <Table 
+                    columns={Columns} 
+                    dataSource={adaptedData} 
+                    rowKey={(record) => record.rank} 
+                    pagination={false}
+                    style={{marginTop: 40, marginBottom: 40}}
+                    />
+            </Col>
+            </Content>
+            <Footer style={{position:'sticky'}}>
+            <Row>Copyright (C) Handwer, 2023</Row>
+            <Row><a href = 'mailto:handwer@qq.com'>Contact Mail: handwer@qq.com</a></Row>
+            <Row>每题最快 AC 顺序以表单顺序为准</Row>
+            </Footer>
+        </Layout>
+        </div>
+    );
+}
+
+function getProblemIndexes(problems: ProblemType[]): ColumnsType<DataTable> {
+    let result: ColumnsType<DataTable> = []
+    ColumnsDefault.forEach((value) => {
+        result.push(value)
+    })
+    // console.log(problems)
+    // console.log(ColumnsDefault);
+    problems.forEach((value) => {
+        result.push({
+            title: value.title,
+            dataIndex: ['score', `${value.id}`],
+            key: `score${value.id}`,
+            render: (data: any) => {
+              return (
+                <div style={{
+                    color: (Number(data[0]) === 10 ? (Number(data[1]) === 0 ? '#BDDB69' : '#86AD53') : '#E84026'), 
+                    fontWeight: 'bold',
+                    backgroundColor: (Number(data[1]) === 0 ? '#5BA854' : '#ffffff00'),
+                    margin: '0'
+                  }}>
+                  {data[0]}
+                </div>
+              )
+            }
+          })
+    })
+    // console.log(result)
+    return result
+}
+
 function adaptToDataT(): DataTable[] {
   let data: DataTable[] = []
   fetchedData.forEach((value, index, array) => {
@@ -617,71 +664,3 @@ function generateStatistics(adaptedData: DataTable[]): DataStatistics[] {
   })
   return stats
 }
-
-function StatColumn(statsData: DataStatistics[]) {
-    const columnPlot = {
-        data: statsData,
-        xField: 'tid',
-        yField: 'value',
-        seriesField: 'type',
-        isStack: true
-    }
-    return <Column {...columnPlot} style={{width: '100%'}}/>
-}
-
-function App() {
-    let adaptedData: DataTable[] = []
-    let statsData: DataStatistics[] = []
-    const [isModalOpen, setIsModalOpen] = useState(false)
-    
-    adaptedData = adaptToDataT()
-    statsData = generateStatistics(adaptedData)
-    console.log(statsData)
-    
-    
-    return (
-        <div className="App">
-        <Layout>
-            <Header style={{
-                backgroundColor: '#E5E5E5', 
-                position: 'sticky', 
-                top: 0, 
-                zIndex: 1,
-                width: '100%', 
-                boxShadow: '0px 2px 10px 2px rgb(0,0,0,0.15)'
-                }} >
-                <Row style={{justifyContent: 'space-between', zIndex: 2}}>
-                    <Col style={{fontSize: 20, color:'#000000', zIndex: 2, width: '30%'}}>Rank List</Col>
-                    
-                    <Col>
-                        <Button onClick={() => {setIsModalOpen(!isModalOpen)}} shape='circle'>
-                            <BarChartOutlined />
-                        </Button>
-                    </Col>
-                </Row>
-            </Header>
-            <Content style={{width: '80%', margin: 'auto', zIndex: 0}}>
-            <Col style={{width:'100%'}}>
-                <Modal title="统计分析" open={isModalOpen} onOk={() => {setIsModalOpen(false)}}>
-                    {StatColumn(statsData)}
-                </Modal>
-                <Table 
-                    columns={Columns} 
-                    dataSource={adaptedData} 
-                    rowKey={(record) => record.rank} 
-                    pagination={false}
-                    style={{marginTop: 40, marginBottom: 40}}
-                    />
-            </Col>
-            </Content>
-            <Footer style={{position:'sticky'}}>
-            <Row>Copyright (C) Handwer, 2023</Row>
-            <Row><a href = 'mailto:handwer@qq.com'>Contact Mail: handwer@qq.com</a></Row>
-            <Row>每题最快 AC 顺序以表单顺序为准</Row>
-            </Footer>
-        </Layout>
-        </div>
-    );
-}
-
-export default App;
