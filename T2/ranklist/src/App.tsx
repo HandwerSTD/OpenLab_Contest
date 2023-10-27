@@ -1,7 +1,7 @@
 import React from 'react';
 import './App.css';
-import {Layout, Row, Col, Button, Table, Modal} from 'antd'
-import {BarChartOutlined} from '@ant-design/icons'
+import {Layout, Row, Col, Button, Table, Modal, Tooltip} from 'antd'
+import {BarChartOutlined, ReloadOutlined} from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table';
 import { Column } from '@ant-design/plots';
 import { useState } from 'react';
@@ -535,17 +535,18 @@ function StatColumn(statsData: DataStatistics[]) {
 
 
 export default function App() {
+    const [fetchData, setFetchedData] = useState(fetchedData)
+
     let adaptedData: DataTable[] = []
     let statsData: DataStatistics[] = []
     let Columns:ColumnsType<DataTable> = []
     
     const [isModalOpen, setIsModalOpen] = useState(false)
-
-    adaptedData = adaptToDataT()
+        
+    adaptedData = adaptToDataT(fetchData)
     statsData = generateStatistics(adaptedData)
-    // console.log(statsData)
     Columns = getProblemIndexes(ProblemsIndex)
-    
+
     return (
         <div className="App">
         <Layout>
@@ -561,9 +562,16 @@ export default function App() {
                     <Col style={{fontSize: 25, color:'#000000', zIndex: 2, width: '30%'}}>Rank List</Col>
                     
                     <Col>
-                        <Button onClick={() => {setIsModalOpen(!isModalOpen)}} shape='circle'>
-                            <BarChartOutlined />
-                        </Button>
+                        <Tooltip title='统计分析'>
+                            <Button onClick={() => {setIsModalOpen(!isModalOpen)}} shape='circle' style={{marginRight: '10px'}}>
+                                <BarChartOutlined />
+                            </Button>
+                        </Tooltip>
+                        <Tooltip title='刷新'>
+                            <Button onClick={() => {setFetchedData(refreshFetchData())}} shape='circle'>
+                                <ReloadOutlined />
+                            </Button>
+                        </Tooltip>
                     </Col>
                 </Row>
             </Header>
@@ -599,6 +607,12 @@ export default function App() {
     );
 }
 
+function refreshFetchData(): DataType[] {
+    let newData: DataType[] = []
+    newData = fetchedData
+    return newData
+}
+
 function getProblemIndexes(problems: ProblemType[]): ColumnsType<DataTable> {
     let result: ColumnsType<DataTable> = []
     ColumnsDefault.forEach((value) => {
@@ -629,9 +643,9 @@ function getProblemIndexes(problems: ProblemType[]): ColumnsType<DataTable> {
     return result
 }
 
-function adaptToDataT(): DataTable[] {
+function adaptToDataT(origin_data: DataType[]): DataTable[] {
   let data: DataTable[] = []
-  fetchedData.forEach((value, index, array) => {
+  origin_data.forEach((value, index, array) => {
     let this_data = new DataTable(value, index)
     data.push(this_data)
   })
