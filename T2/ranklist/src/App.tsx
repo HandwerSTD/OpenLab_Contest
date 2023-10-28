@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import './App.css';
 import {Layout, Row, Col, Button, Table, Modal, Tooltip} from 'antd'
 import {BarChartOutlined, ReloadOutlined} from '@ant-design/icons'
@@ -12,39 +12,40 @@ class ScoreType {
   level: number = 0
   score: number = 0
 }
-interface DataType {
-  name: string,
-  id: number,
-  score: ScoreType[]
+class DataType {
+  name: string = ''
+  id: number = 0
+  score: ScoreType[] = []
 }
-interface ProblemType {
-    title: string
-    id: number
+class ProblemType {
+    title: string = ''
+    id: number = 0
 }
 
 class DataTable {
   name: string = ''
   id: number = 0
-  score: Array<Array<Number> > = []
+  score: Array<Array<number> > = []
+  // score[problem id] = [score, completeTime, isFirst(1/0)]
   rank: number = 0
   total_score: number = 0
   key: number = 0
 
-  constructor(data: DataType, completeIndex: number) {
+  constructor(data: DataType, completeTime: number) {
     this.name = data.name
     this.id = data.id
     data.score.forEach((value, index) => {
-      this.score.push([value.score, completeIndex])
+      this.score.push([value.score, completeTime, 0])
       this.total_score += value.score
     });
-    this.key = completeIndex
+    this.key = completeTime
   }
 }
 
-interface DataStatistics {
-  tid: string
-  value: number
-  type: string
+class DataStatistics {
+  tid: string = ''
+  value: number = 0
+  type: string = ''
 }
 
 const ProblemsIndex: ProblemType[] = [
@@ -77,451 +78,6 @@ const ColumnsDefault: ColumnsType<DataTable> = [
   }
 ]
 
-
-let fetchedData: DataType[] = [
-  {
-      "name": "叶静琪",
-      "id": 2023553947,
-      "score": [
-          {
-              "level": 0,
-              "score": 10
-          },
-          {
-              "level": 1,
-              "score": 10
-          },
-          {
-              "level": 2,
-              "score": 10
-          },
-          {
-              "level": 3,
-              "score": 10
-          }
-      ]
-  },
-  {
-      "name": "张冰颖",
-      "id": 2023283917,
-      "score": [
-          {
-              "level": 0,
-              "score": 10
-          },
-          {
-              "level": 1,
-              "score": 0
-          },
-          {
-              "level": 2,
-              "score": 10
-          },
-          {
-              "level": 3,
-              "score": 10
-          }
-      ]
-  },
-  {
-      "name": "莫彬华",
-      "id": 2023541973,
-      "score": [
-          {
-              "level": 0,
-              "score": 0
-          },
-          {
-              "level": 1,
-              "score": 10
-          },
-          {
-              "level": 2,
-              "score": 10
-          },
-          {
-              "level": 3,
-              "score": 0
-          }
-      ]
-  },
-  {
-      "name": "莫晋运",
-      "id": 2023513887,
-      "score": [
-          {
-              "level": 0,
-              "score": 0
-          },
-          {
-              "level": 1,
-              "score": 10
-          },
-          {
-              "level": 2,
-              "score": 10
-          },
-          {
-              "level": 3,
-              "score": 0
-          }
-      ]
-  },
-  {
-      "name": "秦涛胜",
-      "id": 2023696864,
-      "score": [
-          {
-              "level": 0,
-              "score": 10
-          },
-          {
-              "level": 1,
-              "score": 0
-          },
-          {
-              "level": 2,
-              "score": 10
-          },
-          {
-              "level": 3,
-              "score": 0
-          }
-      ]
-  },
-  {
-      "name": "何思芳",
-      "id": 2023062630,
-      "score": [
-          {
-              "level": 0,
-              "score": 10
-          },
-          {
-              "level": 1,
-              "score": 10
-          },
-          {
-              "level": 2,
-              "score": 10
-          },
-          {
-              "level": 3,
-              "score": 10
-          }
-      ]
-  },
-  {
-      "name": "侯鼎鸿",
-      "id": 2023074527,
-      "score": [
-          {
-              "level": 0,
-              "score": 10
-          },
-          {
-              "level": 1,
-              "score": 0
-          },
-          {
-              "level": 2,
-              "score": 0
-          },
-          {
-              "level": 3,
-              "score": 0
-          }
-      ]
-  },
-  {
-      "name": "梁雨双",
-      "id": 2023622768,
-      "score": [
-          {
-              "level": 0,
-              "score": 0
-          },
-          {
-              "level": 1,
-              "score": 10
-          },
-          {
-              "level": 2,
-              "score": 10
-          },
-          {
-              "level": 3,
-              "score": 0
-          }
-      ]
-  },
-  {
-      "name": "蔡鼎承",
-      "id": 2023166158,
-      "score": [
-          {
-              "level": 0,
-              "score": 0
-          },
-          {
-              "level": 1,
-              "score": 0
-          },
-          {
-              "level": 2,
-              "score": 10
-          },
-          {
-              "level": 3,
-              "score": 10
-          }
-      ]
-  },
-  {
-      "name": "邓雨双",
-      "id": 2023628251,
-      "score": [
-          {
-              "level": 0,
-              "score": 10
-          },
-          {
-              "level": 1,
-              "score": 0
-          },
-          {
-              "level": 2,
-              "score": 0
-          },
-          {
-              "level": 3,
-              "score": 0
-          }
-      ]
-  },
-  {
-      "name": "董红芳",
-      "id": 2023018004,
-      "score": [
-          {
-              "level": 0,
-              "score": 10
-          },
-          {
-              "level": 1,
-              "score": 0
-          },
-          {
-              "level": 2,
-              "score": 0
-          },
-          {
-              "level": 3,
-              "score": 0
-          }
-      ]
-  },
-  {
-      "name": "孟若菲",
-      "id": 2023414932,
-      "score": [
-          {
-              "level": 0,
-              "score": 0
-          },
-          {
-              "level": 1,
-              "score": 10
-          },
-          {
-              "level": 2,
-              "score": 0
-          },
-          {
-              "level": 3,
-              "score": 0
-          }
-      ]
-  },
-  {
-      "name": "余茹婕",
-      "id": 2023299746,
-      "score": [
-          {
-              "level": 0,
-              "score": 0
-          },
-          {
-              "level": 1,
-              "score": 10
-          },
-          {
-              "level": 2,
-              "score": 10
-          },
-          {
-              "level": 3,
-              "score": 10
-          }
-      ]
-  },
-  {
-      "name": "朱彬琪",
-      "id": 2023549744,
-      "score": [
-          {
-              "level": 0,
-              "score": 10
-          },
-          {
-              "level": 1,
-              "score": 10
-          },
-          {
-              "level": 2,
-              "score": 0
-          },
-          {
-              "level": 3,
-              "score": 10
-          }
-      ]
-  },
-  {
-      "name": "蒋鸿祥",
-      "id": 2023810976,
-      "score": [
-          {
-              "level": 0,
-              "score": 10
-          },
-          {
-              "level": 1,
-              "score": 10
-          },
-          {
-              "level": 2,
-              "score": 0
-          },
-          {
-              "level": 3,
-              "score": 0
-          }
-      ]
-  },
-  {
-      "name": "韦辰逸",
-      "id": 2023976772,
-      "score": [
-          {
-              "level": 0,
-              "score": 0
-          },
-          {
-              "level": 1,
-              "score": 0
-          },
-          {
-              "level": 2,
-              "score": 10
-          },
-          {
-              "level": 3,
-              "score": 10
-          }
-      ]
-  },
-  {
-      "name": "唐翠柳",
-      "id": 2023074341,
-      "score": [
-          {
-              "level": 0,
-              "score": 10
-          },
-          {
-              "level": 1,
-              "score": 10
-          },
-          {
-              "level": 2,
-              "score": 0
-          },
-          {
-              "level": 3,
-              "score": 10
-          }
-      ]
-  },
-  {
-      "name": "邵雅儿",
-      "id": 2023972703,
-      "score": [
-          {
-              "level": 0,
-              "score": 0
-          },
-          {
-              "level": 1,
-              "score": 0
-          },
-          {
-              "level": 2,
-              "score": 0
-          },
-          {
-              "level": 3,
-              "score": 0
-          }
-      ]
-  },
-  {
-      "name": "谭冰兰",
-      "id": 2023833849,
-      "score": [
-          {
-              "level": 0,
-              "score": 10
-          },
-          {
-              "level": 1,
-              "score": 10
-          },
-          {
-              "level": 2,
-              "score": 0
-          },
-          {
-              "level": 3,
-              "score": 10
-          }
-      ]
-  },
-  {
-      "name": "袁珊缦",
-      "id": 2023834614,
-      "score": [
-          {
-              "level": 0,
-              "score": 0
-          },
-          {
-              "level": 1,
-              "score": 10
-          },
-          {
-              "level": 2,
-              "score": 10
-          },
-          {
-              "level": 3,
-              "score": 10
-          }
-      ]
-  }
-]
-
-
 function StatColumn(statsData: DataStatistics[]) {
     const columnPlot = {
         data: statsData,
@@ -535,7 +91,7 @@ function StatColumn(statsData: DataStatistics[]) {
 
 
 export default function App() {
-    const [fetchData, setFetchedData] = useState(fetchedData)
+    const [fetchData, setFetchedData] = useState([])
 
     let adaptedData: DataTable[] = []
     let statsData: DataStatistics[] = []
@@ -543,6 +99,9 @@ export default function App() {
     
     const [isModalOpen, setIsModalOpen] = useState(false)
         
+    // onAppear
+    useEffect(() => { refreshFetchData(setFetchedData) }, [])
+
     adaptedData = adaptToDataT(fetchData)
     statsData = generateStatistics(adaptedData)
     Columns = getProblemIndexes(ProblemsIndex)
@@ -568,7 +127,7 @@ export default function App() {
                             </Button>
                         </Tooltip>
                         <Tooltip title='刷新'>
-                            <Button onClick={() => {setFetchedData(refreshFetchData())}} shape='circle'>
+                            <Button onClick={() => {refreshFetchData(setFetchedData)}} shape='circle'>
                                 <ReloadOutlined />
                             </Button>
                         </Tooltip>
@@ -607,10 +166,11 @@ export default function App() {
     );
 }
 
-function refreshFetchData(): DataType[] {
-    let newData: DataType[] = []
-    newData = fetchedData
-    return newData
+function refreshFetchData(setData: Function) {
+    fetch('https://puzzle.qieee.top/api/rank/', {mode: 'cors'})
+    .then((res) => { return res.json() })
+    .then((res) => { setData(res); console.log(res) })
+    .catch((e) => { console.log(e) })
 }
 
 function getProblemIndexes(problems: ProblemType[]): ColumnsType<DataTable> {
@@ -630,7 +190,7 @@ function getProblemIndexes(problems: ProblemType[]): ColumnsType<DataTable> {
                 <div style={{
                     color: (Number(data[0]) === 10 ? (Number(data[1]) === 0 ? '#BDDB69' : '#86AD53') : '#E84026'), 
                     fontWeight: 'bold',
-                    backgroundColor: (Number(data[1]) === 0 ? '#5BA854' : '#ffffff00'),
+                    backgroundColor: (Number(data[2]) === 1 ? '#5BA854' : '#ffffff00'),
                     margin: '0'
                   }}>
                   {data[0]}
@@ -649,6 +209,17 @@ function adaptToDataT(origin_data: DataType[]): DataTable[] {
     let this_data = new DataTable(value, index)
     data.push(this_data)
   })
+  ProblemsIndex.forEach((value) => {
+    let tid = value.id
+    // 因为是时间是按榜单顺序假定的 所以也不用排序 本来就是升序的
+    // data.sort((a, b) => {return a.score[tid][1] - b.score[tid][1]})
+    for (let i = 0; i < data.length; ++i) {
+        if (data[i].score[tid][0] === 10) {
+            data[i].score[tid][2] = 1;
+            break;
+        }
+    }
+  })
   data.sort((a, b) => {return b.total_score - a.total_score})
   data.forEach((value, index) => {
     value.rank = index + 1
@@ -657,7 +228,8 @@ function adaptToDataT(origin_data: DataType[]): DataTable[] {
 }
 
 function generateStatistics(adaptedData: DataTable[]): DataStatistics[] {
-  let acs: Array<number> = [0, 0, 0, 0]
+  let acs: Array<number> = []
+  ProblemsIndex.forEach(() => {acs.push(0)})
   adaptedData.forEach((value) => {
     value.score.forEach((thisScore, index) => {
       acs[index] += ((thisScore[0] === 10) ? 1 : 0)
@@ -672,7 +244,7 @@ function generateStatistics(adaptedData: DataTable[]): DataStatistics[] {
     })
     stats.push({
       tid: `T${index + 1}`, 
-      value: fetchedData.length - value,
+      value: adaptedData.length - value,
       type: '非 AC'
     })
   })
