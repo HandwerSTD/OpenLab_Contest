@@ -8,14 +8,14 @@ import { useState } from 'react';
 
 const {Header, Content, Footer} = Layout;
 
-class ScoreType {
-  level: number = 0
-  score: number = 0
+interface ScoreType {
+  level: number,
+  score: number,
 }
-class DataType {
-  name: string = ''
-  id: number = 0
-  score: ScoreType[] = []
+interface DataType {
+  name: string,
+  id: number,
+  score: ScoreType[],
 }
 class ProblemType {
     title: string = ''
